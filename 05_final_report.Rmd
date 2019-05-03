@@ -1,0 +1,21 @@
+---
+title: "MSD 2019 Final Project"
+subtitle: "A replication and extension of < PAPER TITLE > by < ORIGINAL AUTHORS >, < PUBLISHED IN >"
+author: "Your Names (your unis)"
+date: '`r Sys.time()`'
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: 3
+---
+
+
+
+
+
+
+The following is a list of all packages used to generate these results. (Leave at very end of file.)
+
+```{r}
+sessionInfo()
+```
