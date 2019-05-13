@@ -9,27 +9,41 @@ library(glmnet)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Incorrect analysis
+# Replicating Results in the Original Paper
 
-```{r}
-epinions_edges <- read.delim("data/epinions.txt",col.names = c("FromNodeID","ToNodeID","Sign"))
-epinion_nodes <-read.csv("data/nodes_features_epinions.csv")
-epinions_embed <-read.csv("data/edges_features_epinions.csv")
-temp_edges <- left_join(epinions_edges, epinions_embed, by = c("FromNodeID" = "u", "ToNodeID" = "v"))
-in_features <- select(epinion_nodes,"node_id","total_in","pos_in","neg_in")
-out_features <- select(epinion_nodes,"node_id","total_out","pos_out","neg_out")
-master <- left_join(temp_edges, in_features, by = c("FromNodeID" = "node_id"))
-master <- left_join(master, out_features,by = c("ToNodeID" = "node_id"))
-master <- master %>% mutate(Sign = (Sign+1)/2)
+```{r embedding-loop}
+embedding_loop <- function(temp_test, em_level) {
 
-mydata <- as.data.frame(master)
-mylogit <- glm(Sign ~ embeddedness + total_in + pos_in + neg_in + total_out + pos_out + neg_out, data = mydata, family = "binomial")
-summary(mylogit)
+  temp_test <- temp_test %>% filter(embeddedness >= em_level)
+  
+  mylogit <- glm(sign ~ embeddedness + pos_in.x + neg_in.y + total_out.x + total_in.y + pos_out.x + neg_out.y, data = temp_test, family = "binomial")
+  summary(mylogit)
+  
+  temp_x <- temp_test[,-c(1,2,3)]
+  temp_y <- temp_test[,3]
+  cvfitted <- cv.glmnet(as.matrix(temp_x),temp_y, family="binomial")
+  
+  #plot(cvfitted)
+  print(cvfitted$lambda.min)
+  
+  log_odds_predictions <-predict(cvfitted,as.matrix(temp_x), s="lambda.min")
+  prob_predictions <- exp(log_odds_predictions)/(1 + exp(log_odds_predictions))
+  prob_predictions_actual <- cbind(prob_predictions, temp_y)
+  colnames(prob_predictions_actual) <- c("probability","actual")
+  
+  prob_predictions_actual <- as_tibble(prob_predictions_actual)
+  prob_predictions_actual <- prob_predictions_actual %>%
+    mutate(predicted_sign =  ifelse(probability < .5, 0, 1)) %>%
+    mutate(match = ifelse(predicted_sign == actual, 1,0))
+  
+  print(mean(prob_predictions_actual$match))
+  return(mean(prob_predictions_actual$match))
+}
 ```
 
-Correct Analysis for Old
+Old Wikipedia Data Logistic Regression
 
-```{r logit-mod}
+```{r old wikipedia logistic regression}
 oldwiki_edges <- read.csv("data/oldwiki_edgelist.csv", col.names = c("u", "v", "sign"))
 oldwiki_nodes <-read_csv("data/nodes_features_oldwiki.csv")
 oldwiki_embed <-read_csv("data/edges_features_old_wiki.csv")
@@ -41,32 +55,16 @@ test <- select(oldwiki_sign_embed, u, v, sign, embeddedness, pos_in.x, neg_in.y,
 
 test <- test %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
 
-mylogit <- glm(sign ~ embeddedness + pos_in.x + neg_in.y + total_out.x + total_in.y + pos_out.x + neg_out.y, data = test, family = "binomial")
-summary(mylogit)
+pred_accuracy_oldwiki <- vector('numeric', 3)
+pred_accuracy_oldwiki[1] <- embedding_loop(test, 0)
+pred_accuracy_oldwiki[2] <- embedding_loop(test, 10)
+pred_accuracy_oldwiki[3] <- embedding_loop(test, 25)
 ```
 
-Visualizing predictive accuracy
 
-```{r}
-temp_x <- test[,-c(1,2,3)]
-temp_y <- test[,3]
-cvfitted <- cv.glmnet(as.matrix(temp_x),temp_y, family="binomial")
-plot(cvfitted)
-print(cvfitted$lambda.min)
-log_odds_predictions <-predict(cvfitted,as.matrix(temp_x), s="lambda.min")
-prob_predictions <- exp(log_odds_predictions)/(1 + exp(log_odds_predictions))
-prob_predictions_actual <- cbind(prob_predictions, temp_y)
-colnames(prob_predictions_actual) <- c("probability","actual")
+Slashdot Data Logistic Regression and Predictive Accuracy
 
-prob_predictions_actual <- as_tibble(prob_predictions_actual)
-prob_predictions_actual <- prob_predictions_actual %>%
-  mutate(predicted_sign =  ifelse(probability < .5, 0, 1)) %>%
-  mutate(match = ifelse(predicted_sign == actual, 1,0))
-
-mean(prob_predictions_actual$match)
-```
-
-```{r slashdot}
+```{r slashdot logistic regression}
 slashdot_edges <- read.csv("data/edgelist_slashdot.csv", col.names = c("u", "v", "sign"))
 slashdot_nodes <-read_csv("data/nodes_features_slashdot.csv")
 slashdot_embed <-read_csv("data/edges_features_slashdot.csv")
@@ -78,30 +76,15 @@ test_slashdot <- select(slashdot_sign_embed, u, v, sign, embeddedness, pos_in.x,
 
 test_slashdot <- test_slashdot %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
 
-mylogit_slashdot <- glm(sign ~ embeddedness + pos_in.x + neg_in.y + total_out.x + total_in.y + pos_out.x + neg_out.y, data = test_slashdot, family = "binomial")
-summary(mylogit_slashdot)
-
-
-temp_x_slashdot <- test_slashdot[,-c(1,2,3)]
-temp_y_slashdot <- test_slashdot[,3]
-cvfitted_slashdot <- cv.glmnet(as.matrix(temp_x_slashdot),temp_y_slashdot, family="binomial")
-plot(cvfitted_slashdot)
-print(cvfitted_slashdot$lambda.min)
-log_odds_predictions_slashdot <-predict(cvfitted_slashdot,as.matrix(temp_x_slashdot), s="lambda.min")
-prob_predictions_slashdot <- exp(log_odds_predictions_slashdot)/(1 + exp(log_odds_predictions_slashdot))
-prob_predictions_actual_slashdot <- cbind(prob_predictions_slashdot, temp_y_slashdot)
-colnames(prob_predictions_actual_slashdot) <- c("probability","actual")
-
-prob_predictions_actual_slashdot <- as_tibble(prob_predictions_actual_slashdot)
-prob_predictions_actual_slashdot <- prob_predictions_actual_slashdot %>%
-  mutate(predicted_sign =  ifelse(probability < .5, 0, 1)) %>%
-  mutate(match = ifelse(predicted_sign == actual, 1,0))
-
-print(mean(prob_predictions_actual_slashdot$match))
+pred_accuracy_slashdot <- vector('numeric', 3)
+pred_accuracy_slashdot[1] <- embedding_loop(test_slashdot, 0)
+pred_accuracy_slashdot[2] <- embedding_loop(test_slashdot, 10)
+pred_accuracy_slashdot[3] <- embedding_loop(test_slashdot, 25)
 ```
 
+Epinions Data Logistic Regression and Predictive Accuracy
 
-```{r epinions}
+```{r epinions logistic regression}
 epinions_edges <- read.csv("data/edgelist_epinions.csv", col.names = c("u", "v", "sign"))
 epinions_nodes <-read_csv("data/nodes_features_epinions.csv")
 epinions_embed <-read_csv("data/edges_features_epinions.csv")
@@ -113,24 +96,154 @@ test_epinions <- select(epinions_sign_embed, u, v, sign, embeddedness, pos_in.x,
 
 test_epinions <- test_epinions %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
 
-mylogit_epinions <- glm(sign ~ embeddedness + pos_in.x + neg_in.y + total_out.x + total_in.y + pos_out.x + neg_out.y, data = test_epinions, family = "binomial")
-summary(mylogit_epinions)
-
-
-temp_x_epinions <- test_epinions[,-c(1,2,3)]
-temp_y_epinions <- test_epinions[,3]
-cvfitted_epinions <- cv.glmnet(as.matrix(temp_x_epinions),temp_y_epinions, family="binomial")
-plot(cvfitted_epinions)
-print(cvfitted_epinions$lambda.min)
-log_odds_predictions_epinions <-predict(cvfitted_epinions,as.matrix(temp_x_epinions), s="lambda.min")
-prob_predictions_epinions <- exp(log_odds_predictions_epinions)/(1 + exp(log_odds_predictions_epinions))
-prob_predictions_actual_epinions <- cbind(prob_predictions_epinions, temp_y_epinions)
-colnames(prob_predictions_actual_epinions) <- c("probability","actual")
-
-prob_predictions_actual_epinions <- as_tibble(prob_predictions_actual_epinions)
-prob_predictions_actual_epinions <- prob_predictions_actual_epinions %>%
-  mutate(predicted_sign =  ifelse(probability < .5, 0, 1)) %>%
-  mutate(match = ifelse(predicted_sign == actual, 1,0))
-
-print(mean(prob_predictions_actual_epinions$match))
+pred_accuracy_epinions <- vector('numeric', 3)
+pred_accuracy_epinions[1] <- embedding_loop(test_epinions, 0)
+pred_accuracy_epinions[2] <- embedding_loop(test_epinions, 10)
+pred_accuracy_epinions[3] <- embedding_loop(test_epinions, 25)
 ```
+
+```{r predict accuracy bar graphs}
+total_pred_acc <- cbind(c("0","10","25"), pred_accuracy_epinions, pred_accuracy_slashdot, pred_accuracy_oldwiki)
+
+total_pred_acc <- as_tibble(total_pred_acc)
+total_pred_acc <- rename(total_pred_acc, embeddedness_level = V1)
+
+graph_epinions <- ggplot(data = total_pred_acc, aes(x = embeddedness_level, y = pred_accuracy_epinions)) + 
+  geom_bar(stat = "identity") + 
+  expand_limits(y=c(0.5, 1))
+
+graph_slashdot <- ggplot(data = total_pred_acc, aes(x = embeddedness_level, y = pred_accuracy_slashdot)) + 
+  geom_bar(stat = "identity") + 
+  expand_limits(y=c(0.5, 1))
+
+graph_oldwiki <- ggplot(data = total_pred_acc, aes(x = embeddedness_level, y = pred_accuracy_oldwiki)) + 
+  geom_bar(stat = "identity") + 
+  expand_limits(y=c(0.5, 1))
+
+graph_epinions
+graph_slashdot
+graph_oldwiki
+```
+
+```{r cross prediction function}
+cross_predict <- function(model, temp_test) {
+  
+  temp_x <- temp_test[,-c(1,2,3)]
+  temp_y <- temp_test[,3]
+
+  log_odds_predictions <-predict(model,as.matrix(temp_x), s="lambda.min")
+  prob_predictions <- exp(log_odds_predictions)/(1 + exp(log_odds_predictions))
+  prob_predictions_actual <- cbind(prob_predictions, temp_y)
+  colnames(prob_predictions_actual) <- c("probability","actual")
+  
+  prob_predictions_actual <- as_tibble(prob_predictions_actual)
+  prob_predictions_actual <- prob_predictions_actual %>%
+    mutate(predicted_sign =  ifelse(probability < .5, 0, 1)) %>%
+    mutate(match = ifelse(predicted_sign == actual, 1,0))
+  
+  return(mean(prob_predictions_actual$match))
+}
+```
+
+Train Logistic Regression Models
+
+```{r train logistic regression models}
+temp_x1 <- test[,-c(1,2,3)]
+temp_x2 <- test_epinions[,-c(1,2,3)]
+temp_x3 <- test_slashdot[,-c(1,2,3)]
+
+temp_y1 <- test[,3]
+temp_y2 <- test_epinions[,3]
+temp_y3 <- test_slashdot[,3]
+
+mylogit_wiki_old <- cv.glmnet(as.matrix(temp_x1),temp_y1, family = "binomial")
+mylogit_epinions <- cv.glmnet(as.matrix(temp_x2),temp_y2, family = "binomial")
+mylogit_slashdot <-cv.glmnet(as.matrix(temp_x3),temp_y3, family = "binomial")
+```
+
+Cross Predict 
+
+```{r perform cross predictions}
+cross_predict(mylogit_wiki_old,test_epinions)
+cross_predict(mylogit_wiki_old,test_slashdot)
+
+cross_predict(mylogit_slashdot,test)
+cross_predict(mylogit_slashdot,test_epinions)
+
+cross_predict(mylogit_epinions,test)
+cross_predict(mylogit_epinions,test_slashdot)
+```
+
+Leskovec, Huttenlocher, and Kleinberg reported the following predictive accuracy results. The rows represent the dataset trained on and the columns represent the dataset tested on. The machine learning formulation utilized for these results relied on all 23 features, including the triads. We chose to focus on the 7 node specific features for our computational results. 
+
+\begin{table}[]
+\begin{tabular}{llll}
+          & Epinions & Slashdot & Wikipedia \\
+Epinions  & 0.9342   & 0.9289   & 0.7722    \\
+Slashdot  & 0.9249   & 0.9351   & 0.7717    \\
+Wikipedia & 0.9272   & 0.9260   & 0.8021   
+\end{tabular}
+\end{table}
+
+Our results are presented below with a focus on the 7 node specific features. It's important to note that all models tests on the Epinions and Wikipedia datasets yield similar results to Leskovec, Huttenlocher, and Kleinberg's original paper. However, we see larger disparities between the original results and our results with models tested on Slashdot. This suggests that the triad features carry larger importance for the Slashdot dataset than the Epinions and Wikipedia datasets. 
+
+\begin{table}[]
+\begin{tabular}{llll}
+          & Epinions & Slashdot & Wikipedia \\
+Epinions  & 0.8991   & 0.8125   & 0.7956    \\
+Slashdot  & 0.8916   & 0.8424   & 0.7870    \\
+Wikipedia & 0.9249   & 0.8446   & 0.8549   
+\end{tabular}
+\end{table}
+
+# Considering New Wikipedia Data
+
+```{r old wikipedia logistic regression}
+newwiki_edges <- read.csv("data/edgelist_newwiki.csv", col.names = c("u", "v", "sign"))
+newwiki_nodes <-read_csv("data/nodes_features_newwiki.csv")
+newwiki_embed <-read_csv("data/edges_features_new_wiki.csv")
+
+newwiki_sign_embed <- inner_join(newwiki_edges, newwiki_embed, by = c('u'='u', 'v' = 'v'))
+newwiki_sign_embed <- inner_join(newwiki_sign_embed, newwiki_nodes, by = c('u' = 'node_id'))
+newwiki_sign_embed <- inner_join(newwiki_sign_embed, newwiki_nodes, by = c('v' = 'node_id'))
+
+test_newwiki <- select(newwiki_sign_embed, u, v, sign, embeddedness, pos_in.x, neg_in.y, total_out.x, total_in.y, pos_out.x, neg_out.y)
+
+test_newwiki <- test_newwiki %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
+
+pred_accuracy_oldwiki <- vector('numeric', 3)
+pred_accuracy_oldwiki[1] <- embedding_loop(test, 0)
+pred_accuracy_oldwiki[2] <- embedding_loop(test, 10)
+pred_accuracy_oldwiki[3] <- embedding_loop(test, 25)
+```
+
+```{r perform cross predictions}
+temp_x4 <- test_newwiki[,-c(1,2,3)]
+temp_y4 <- test_newwiki[,3]
+
+mylogit_newwiki <-cv.glmnet(as.matrix(temp_x4),temp_y4, family = "binomial")
+
+cross_predict(mylogit_wiki_old,test_newwiki)
+cross_predict(mylogit_slashdot, test_newwiki)
+cross_predict(mylogit_epinions, test_newwiki)
+
+cross_predict(mylogit_newwiki, test)
+cross_predict(mylogit_newwiki, test_slashdot)
+cross_predict(mylogit_newwiki, test_epinions)
+```
+
+We expand our table with the new results. Importantly, our logistic regerssion models on previous Wikipedia data originally cited in the article and our more recent new Wikipedia data show dissimilaries in predictive accuracy over the original three datasets in questions. Whereas the old wikipedia regression model and new wikpedia regression model had the same predictive accuracy on slashdot, there were slight differencs on testing performance on the Epinions datasets and the old Wikipedia dataset. 
+
+\begin{table}[]
+\begin{tabular}{lllll}
+              & Epinions & Slashdot & Wikipedia & New Wikipedia \\
+Epinions      & 0.8991   & 0.8125   & 0.7956    & 0.8270        \\
+Slashdot      & 0.8916   & 0.8424   & 0.7870    & 0.9105        \\
+Wikipedia     & 0.9249   & 0.8446   & 0.8549    & 0.9046        \\
+New Wikipedia & 0.8921   & 0.8447   & 0.9378    & 0.9378       
+\end{tabular}
+\end{table}
+
+
+
+
