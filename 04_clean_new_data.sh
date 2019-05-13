@@ -1,2 +1,3 @@
 #!/bin/bash
-echo hello world
+
+gunzip ./data/soc-sign-bitcoinotc.csv.gz
