@@ -3,4 +3,4 @@ all:
 	./02_clean_original_data.sh
 
 clean:
-	rm -rf ./data/*
+	rm -rf ./data/*.txt
