@@ -65,3 +65,72 @@ prob_predictions_actual <- prob_predictions_actual %>%
 
 mean(prob_predictions_actual$match)
 ```
+
+```{r slashdot}
+slashdot_edges <- read.csv("data/edgelist_slashdot.csv", col.names = c("u", "v", "sign"))
+slashdot_nodes <-read_csv("data/nodes_features_slashdot.csv")
+slashdot_embed <-read_csv("data/edges_features_slashdot.csv")
+
+slashdot_sign_embed <- inner_join(slashdot_edges, slashdot_embed, by = c('u'='u', 'v' = 'v'))
+slashdot_sign_embed <- inner_join(slashdot_sign_embed, slashdot_nodes, by = c('u' = 'node_id'))
+slashdot_sign_embed <- inner_join(slashdot_sign_embed, slashdot_nodes, by = c('v' = 'node_id'))
+test_slashdot <- select(slashdot_sign_embed, u, v, sign, embeddedness, pos_in.x, neg_in.y, total_out.x, total_in.y, pos_out.x, neg_out.y)
+
+test_slashdot <- test_slashdot %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
+
+mylogit_slashdot <- glm(sign ~ embeddedness + pos_in.x + neg_in.y + total_out.x + total_in.y + pos_out.x + neg_out.y, data = test_slashdot, family = "binomial")
+summary(mylogit_slashdot)
+
+
+temp_x_slashdot <- test_slashdot[,-c(1,2,3)]
+temp_y_slashdot <- test_slashdot[,3]
+cvfitted_slashdot <- cv.glmnet(as.matrix(temp_x_slashdot),temp_y_slashdot, family="binomial")
+plot(cvfitted_slashdot)
+print(cvfitted_slashdot$lambda.min)
+log_odds_predictions_slashdot <-predict(cvfitted_slashdot,as.matrix(temp_x_slashdot), s="lambda.min")
+prob_predictions_slashdot <- exp(log_odds_predictions_slashdot)/(1 + exp(log_odds_predictions_slashdot))
+prob_predictions_actual_slashdot <- cbind(prob_predictions_slashdot, temp_y_slashdot)
+colnames(prob_predictions_actual_slashdot) <- c("probability","actual")
+
+prob_predictions_actual_slashdot <- as_tibble(prob_predictions_actual_slashdot)
+prob_predictions_actual_slashdot <- prob_predictions_actual_slashdot %>%
+  mutate(predicted_sign =  ifelse(probability < .5, 0, 1)) %>%
+  mutate(match = ifelse(predicted_sign == actual, 1,0))
+
+print(mean(prob_predictions_actual_slashdot$match))
+```
+
+
+```{r epinions}
+epinions_edges <- read.csv("data/edgelist_epinions.csv", col.names = c("u", "v", "sign"))
+epinions_nodes <-read_csv("data/nodes_features_epinions.csv")
+epinions_embed <-read_csv("data/edges_features_epinions.csv")
+
+epinions_sign_embed <- inner_join(epinions_edges, epinions_embed, by = c('u'='u', 'v' = 'v'))
+epinions_sign_embed <- inner_join(epinions_sign_embed, epinions_nodes, by = c('u' = 'node_id'))
+epinions_sign_embed <- inner_join(epinions_sign_embed, epinions_nodes, by = c('v' = 'node_id'))
+test_epinions <- select(epinions_sign_embed, u, v, sign, embeddedness, pos_in.x, neg_in.y, total_out.x, total_in.y, pos_out.x, neg_out.y)
+
+test_epinions <- test_epinions %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
+
+mylogit_epinions <- glm(sign ~ embeddedness + pos_in.x + neg_in.y + total_out.x + total_in.y + pos_out.x + neg_out.y, data = test_epinions, family = "binomial")
+summary(mylogit_epinions)
+
+
+temp_x_epinions <- test_epinions[,-c(1,2,3)]
+temp_y_epinions <- test_epinions[,3]
+cvfitted_epinions <- cv.glmnet(as.matrix(temp_x_epinions),temp_y_epinions, family="binomial")
+plot(cvfitted_epinions)
+print(cvfitted_epinions$lambda.min)
+log_odds_predictions_epinions <-predict(cvfitted_epinions,as.matrix(temp_x_epinions), s="lambda.min")
+prob_predictions_epinions <- exp(log_odds_predictions_epinions)/(1 + exp(log_odds_predictions_epinions))
+prob_predictions_actual_epinions <- cbind(prob_predictions_epinions, temp_y_epinions)
+colnames(prob_predictions_actual_epinions) <- c("probability","actual")
+
+prob_predictions_actual_epinions <- as_tibble(prob_predictions_actual_epinions)
+prob_predictions_actual_epinions <- prob_predictions_actual_epinions %>%
+  mutate(predicted_sign =  ifelse(probability < .5, 0, 1)) %>%
+  mutate(match = ifelse(predicted_sign == actual, 1,0))
+
+print(mean(prob_predictions_actual_epinions$match))
+```
