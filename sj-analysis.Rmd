@@ -27,7 +27,7 @@ mylogit <- glm(Sign ~ embeddedness + total_in + pos_in + neg_in + total_out + po
 summary(mylogit)
 ```
 
-Correct Analysis
+Correct Analysis for Old
 
 ```{r logit-mod}
 oldwiki_edges <- read.csv("data/oldwiki_edgelist.csv", col.names = c("u", "v", "sign"))
@@ -45,6 +45,23 @@ mylogit <- glm(sign ~ embeddedness + pos_in.x + neg_in.y + total_out.x + total_i
 summary(mylogit)
 ```
 
+Visualizing predictive accuracy
+
 ```{r}
-cv.glmnet()
+temp_x <- test[,-c(1,2,3)]
+temp_y <- test[,3]
+cvfitted <- cv.glmnet(as.matrix(temp_x),temp_y, family="binomial")
+plot(cvfitted)
+print(cvfitted$lambda.min)
+log_odds_predictions <-predict(cvfitted,as.matrix(temp_x), s="lambda.min")
+prob_predictions <- exp(log_odds_predictions)/(1 + exp(log_odds_predictions))
+prob_predictions_actual <- cbind(prob_predictions, temp_y)
+colnames(prob_predictions_actual) <- c("probability","actual")
+
+prob_predictions_actual <- as_tibble(prob_predictions_actual)
+prob_predictions_actual <- prob_predictions_actual %>%
+  mutate(predicted_sign =  ifelse(probability < .5, 0, 1)) %>%
+  mutate(match = ifelse(predicted_sign == actual, 1,0))
+
+mean(prob_predictions_actual$match)
 ```
