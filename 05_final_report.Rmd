@@ -1,15 +1,27 @@
 ---
 title: "MSD 2019 Final Project"
-subtitle: "A replication and extension of < PAPER TITLE > by < ORIGINAL AUTHORS >, < PUBLISHED IN >"
-author: "Your Names (your unis)"
-date: '`r Sys.time()`'
+author: "Sameer Jain (sj2736), Bailey Pearson (bp2471), Tanmay Chopra (tc2897)"
+date: "`r Sys.time()`"
 output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '3'
   pdf_document:
     toc: yes
     toc_depth: 3
+subtitle: 'A replication and extension of  Predicting Positive and Negative Links
+  in Online Social Networks by Jure Leskovec, Daniel Huttenlocher, and Jone Kleinberg,
+  WWW 2010: ACM WWW International conference on World Wide Web, 2010'
 ---
 
+```{r read-data}
+#data <- read_csv("/data/file_name.csv")
+```
 
+```{r logistic-regression}
+
+```
 
 
 
