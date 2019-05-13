@@ -56,6 +56,6 @@ for i in df:
         
 result.drop_duplicates(inplace=True)
 
-with open("edgelist.csv", "w") as f:
+with open("newwiki_edgelist.csv", "w") as f:
     writer = csv.writer(f)
     writer.writerows(result)
