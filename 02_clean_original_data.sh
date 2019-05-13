@@ -14,3 +14,9 @@ iconv -c -t UTF-8 <./data/wiki.txt> ./data/wiki-utf.txt
 
 rm ./data/soc*
 rm ./data/wikiElec.ElecBs3.*
+
+sed -i '' 's/\"(/ /' nodes_features_epinions.csv 
+sed -i '' 's/)\"//' nodes_features_epinions.csv
+
+sed -i '' 's/\"(/ /' nodes_features_slashdot.csv 
+sed -i '' 's/)\"//' nodes_features_slashdot.csv
