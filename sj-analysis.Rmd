@@ -1,11 +1,12 @@
 ---
-title: "analysis"
+title: "Analysis"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(glmnet)
+library(caret)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -140,6 +141,9 @@ cross_predict <- function(model, temp_test) {
   prob_predictions_actual <- prob_predictions_actual %>%
     mutate(predicted_sign =  ifelse(probability < .5, 0, 1)) %>%
     mutate(match = ifelse(predicted_sign == actual, 1,0))
+    
+  cf <-confusionMatrix(table(prob_predictions_actual$predicted_sign,prob_predictions_actual$actual))
+  print(as.table(cf))
   
   return(mean(prob_predictions_actual$match))
 }
@@ -244,6 +248,4 @@ New Wikipedia & 0.8921   & 0.8447   & 0.9378    & 0.9378
 \end{tabular}
 \end{table}
 
-
-
-
+# Extending our Results with the Bitcoin OTC Trust Network
