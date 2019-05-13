@@ -20,3 +20,6 @@ sed -i '' 's/)\"//' nodes_features_epinions.csv
 
 sed -i '' 's/\"(/ /' nodes_features_slashdot.csv 
 sed -i '' 's/)\"//' nodes_features_slashdot.csv
+
+echo 'node_id, total_out, total_in, pos_in, neg_in, pos_out,neg_out' | cat - nodes_features_epinions.csv > temp && mv temp nodes_features_epinions.csv
+echo 'node_id, total_out, total_in, pos_in, neg_in, pos_out,neg_out' | cat - nodes_features_slashdot.csv > temp && mv temp nodes_features_slashdot.csv
