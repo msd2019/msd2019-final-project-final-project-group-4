@@ -16,7 +16,7 @@ S = requests.Session()
 URL = "https://en.wikipedia.org/w/api.php"
 
 result = []
-df = pd.read_csv('csvfile.csv', names=['pageId', 'timestamp'])
+df = pd.read_csv('pageids.csv', names=['pageId', 'timestamp'])
 df = df['pageId'].tolist()
 
 count = 0
@@ -31,6 +31,7 @@ for i in df:
 
     R = S.get(url=URL, params=PARAMS)
     soup = BeautifulSoup(R.json()["parse"]["text"]["*"], 'lxml')
+    
 
     if soup.h3 is not None:
         title = soup.h3.span['id']
@@ -52,6 +53,8 @@ for i in df:
                 result.append([title, k['title'][5:], -1])
     else:
         result.append([title, 'NA', -1])
+        
+result.drop_duplicates(inplace=True)
 
 with open("edgelist.csv", "w") as f:
     writer = csv.writer(f)
