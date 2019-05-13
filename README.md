@@ -23,3 +23,14 @@ Notes:
 The exact structure of the repository may vary from group to group. For instance, you might have a different number of files, some might be `.R` scripts instead of `.sh` scripts, etc., but follow the basic template and edit this README accordingly so that others can run your code and reproduce _your_ results with one command that executes your entire analysis from start to a finished report. You don't necessarily have to use make for your "run all" command, but it can be quite helpful, especially if the process of getting or cleaning the data takes much longer than running the final analysis and generating the report. Whatever the "run all" command is, it should be clearly noted so that others know what it is and how to execute it. If the data files you are using are small enough, add a copy directly to your repository. If a file is too large to add to the repository, include a URL that points to a copy of the data so that others can access it. 
 
 (Delete these notes in your copy of the repository.)
+
+Downloading new Wikipedia data and generating the features for the machine learning model requires the following package installations: 
+
+Python NetworkX
+Python Pandas
+Python collections
+Python bs4 
+Python Requests
+Python lxml
+
+Each of these packages can be installed via pip. We utilized Python 3 for new data collection and computation of triad features for the machine learning model. 

@@ -1,2 +1,4 @@
 #!/bin/bash
-echo hello world
+
+python3 getEdgeList.py
+python3 getPageID.py
