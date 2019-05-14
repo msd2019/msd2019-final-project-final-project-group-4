@@ -1,7 +1,7 @@
 # Final Project for Modeling Social Data, 2019
 
-SAMEER JAIN (sj2736) 
 BAILEY PIERSON (bp2471) 
+SAMEER JAIN (sj2736) 
 TANMAY CHOPRA (tc2897)
 
 This repository has code to attempt to replicate and extend the results in [Predicting Positive and Negative Links in Online Social Networks](www.arxiv.org/abs/1003.2429) by Jure Leskovec, Daniel Huttenlocher, and Jone Kleinberg, WWW 2010: ACM WWW International conference on World Wide Web, 2010.
@@ -15,14 +15,17 @@ The repository is structured as follows:
 3. `03_get_new_data.sh` gets new data used to extend the original results of this paper and places a copy in `data/`
 4. `04_clean_new_data.sh` cleans this data and saves the relevant dataframe(s) in `data/new_data_clean.Rdata`
 5. `05_final_report.Rmd` analysis both the original and new data to replicate and extend the results of the original paper, and produces the final report `05_final_report.pdf`
+6. `nodeFeatures.py` processes raw data and computes feature sets
+7. `getPageID.py` scrapes out all Wikipedia page ids associated with a request for adminship
+8. `getEdgelist.py` scrapes out all votes for a specific request for adminship and outputs edgelist
 
 ----
 
-# Instructions
+# Final Report Instructions
 
-Running `make scripts` runs `01_get_original_data.sh`, `02_clean_original_data.sh`, `03_get_new_data.sh`, and `04_clean_new_data.sh`. This downloads the original data sets and removes unnecessary comments from. We then process the data with several python scripts. Each python scripts takes a substantive amount of time to run, because we specifically calculate the embeddedness of each node in each graph studied. For this reason, we ran our scripts locally and uploaded the resulting outputs as CSV files in the data directory. We process these CSV files in our R analysis. Readers can examine the original data after frunning `make scripts`. Running `make clean` deletes all downloaded data from the `data` subdirectory.  
+Running `make scripts` runs `01_get_original_data.sh`, `02_clean_original_data.sh`, `03_get_new_data.sh`, and `04_clean_new_data.sh`. This downloads the original data sets from SNAP and removes unnecessary comments from them. We then process and compute model features using the `nodeFeatures.py` file, and scrape new Wikipedia data using the `getPageID.py` and `getEdgelist.py` files. Note all of these files extended amount of time, as some of the model features neccesitate common neighbors for every edge across the entire domain and web scraping involves a large number of requests to Wikipedia's servers. For this reason, we ran these scripts locally and uploaded the resulting outputs as CSV files in the data directory. We process these CSV files in our .Rmd file and final report. Readers can examine the original data after running `make scripts`. Running `make clean` deletes all downloaded data from the `data` subdirectory.  
 
-Running `make all` should produce a rendered HTML file of our analysis, code, and results. Note that this process takes a very long time.
+Running `make all` should produce a rendered PDF file of our analysis, code, and results. 
 
 Downloading new Wikipedia data and generating the features for the machine learning model requires the following package installations: 
 
@@ -33,4 +36,4 @@ Downloading new Wikipedia data and generating the features for the machine learn
 - Python Requests
 - Python lxml
 
-Each of these packages can be installed via pip. We utilized Python 3 for new data collection and computation of triad features for the machine learning model. After consultation with Jake Hofman in class, we scrapped our efforts to calculate all 23 features analyzed in the original paper. Instead, we focused exclusively on the 7 node specific features for a simpler segment of replication and analysis.  
+

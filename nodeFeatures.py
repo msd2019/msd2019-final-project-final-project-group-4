@@ -1,18 +1,23 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# ## Node Feature Generation 
 # 
+# This script takes in raw data for each domain considered in this project and ultimately outputs a revised edgelist, a csv of node-level features, and a csv of edge-level features.
 
-# In[33]:
+# In[6]:
 
 
 import csv
 import pandas as pd
+import numpy as np
 import networkx as nx
 from collections import defaultdict
 
 
-# In[34]:
+# ## Declare functions for feature computation
+
+# In[7]:
 
 
 def sign_out_degree(G, e_sign):
@@ -22,7 +27,7 @@ def sign_out_degree(G, e_sign):
     return outdegree
 
 
-# In[35]:
+# In[8]:
 
 
 def sign_in_degree(G, e_sign):
@@ -32,7 +37,7 @@ def sign_in_degree(G, e_sign):
     return indegree
 
 
-# In[36]:
+# In[9]:
 
 
 def total_out_degree(G):
@@ -48,7 +53,7 @@ def total_in_degree(G):
     return indegree
 
 
-# In[27]:
+# In[ ]:
 
 
 data = []
@@ -79,7 +84,11 @@ with open('nodes_features_epinions.csv', 'w') as csv_file:
     writer = csv.writer(csv_file)
     for key, value in my_dict.items():
        writer.writerow([key, value])
+    
+nx.write_edgelist(G_Und_epinions, 'data/edgelist_epinions.csv', delimiter = ',', data = True)
 
+
+# ### Read in epinions data and compute node-level features
 
 # In[28]:
 
@@ -112,9 +121,13 @@ with open('nodes_features_slashdot.csv', 'w') as csv_file:
     writer = csv.writer(csv_file)
     for key, value in my_dict.items():
        writer.writerow([key, value])
+    
+nx.write_edgelist(G_Und_slashdot, 'data/edgelist_slashdot.csv', delimiter = ',', data = True)
 
 
-# In[30]:
+# ### Read in provided Wikipedia data and compute node-level features
+
+# In[18]:
 
 
 data = []
@@ -155,12 +168,16 @@ with open('nodes_features_oldwiki.csv', 'w') as csv_file:
     for key, value in my_dict.items():
        writer.writerow([key, value])
 
+nx.write_edgelist(G_Und_old_wiki, 'data/edgelist_oldwiki.csv', delimiter = ',', data = True)
+
+
+# ### Read in new Wikipedia data and compute node-level features
 
 # In[39]:
 
 
 data = []
-in_txt = csv.reader(open("newwiki_edgelist.csv", "r"))
+in_txt = csv.reader(open("data/newwiki_edgelist.csv", "r"))
 for row in in_txt:
         data.append(tuple(row))
    
@@ -188,7 +205,52 @@ with open('nodes_features_newwiki.csv', 'w') as csv_file:
     writer = csv.writer(csv_file)
     for key, value in my_dict.items():
        writer.writerow([key, value])
+    
+nx.write_edgelist(G_Und_new_wiki, 'data/edgelist_newwiki.csv', delimiter = ',', data = True)
 
+
+# ### Read in Bitcoin data and compute node-level features
+
+# In[11]:
+
+
+data = []
+in_txt = csv.reader(open("data/soc-sign-bitcoinotc.csv", "r"))
+for row in in_txt:
+        data.append(tuple(row))
+   
+df1 = pd.DataFrame(data, columns = ['u', 'v','sign']) 
+df1['sign'] = df1['sign'].astype(int)
+df1.loc[df1.sign < 0, 'sign'] = 0 
+df1.loc[df1.sign > 0, 'sign'] = 1 
+
+G_bitcoin = nx.from_pandas_edgelist(df1, 'u', 'v', 'sign', create_using=nx.DiGraph())
+G_Und_bitcoin = nx.from_pandas_edgelist(df1, 'u', 'v', 'sign')
+
+pos_out = sign_out_degree(G_bitcoin, '1')
+neg_out = sign_out_degree(G_bitcoin, '-1')
+
+pos_in = sign_in_degree(G_bitcoin, '1')
+neg_in = sign_in_degree(G_bitcoin, '-1')
+
+total_out = total_out_degree(G_bitcoin)
+total_in = total_in_degree(G_bitcoin)
+
+ds = [total_out, total_in, pos_in, neg_in, pos_out,neg_out]
+my_dict = {}
+
+for k in total_out.keys():
+  my_dict[k] = tuple(my_dict[k] for my_dict in ds)
+
+with open('data/nodes_features_bitcoin.csv', 'w') as csv_file:
+    writer = csv.writer(csv_file)
+    for key, value in my_dict.items():
+       writer.writerow([key, value])
+
+nx.write_edgelist(G_Und_bitcoin, 'data/edgelist_bitcoin.csv', delimiter = ',', data = True)
+
+
+# ### Compute edge-level embeddedness feature
 
 # In[14]:
 
@@ -247,5 +309,10 @@ with open("edges_features_new_wiki.csv", "w") as f:
 # In[ ]:
 
 
+embedded = embeddedness(G_Und_bitcoin)
 
+with open("edges_features_bitcoin.csv", "w") as f:
+    writer = csv.writer(f)
+    writer.writerow(["u", "v", "embeddedness"])
+    writer.writerows(embedded)
 
