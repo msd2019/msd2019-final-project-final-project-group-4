@@ -22,6 +22,8 @@ The repository is structured as follows:
 
 Running `make scripts` runs `01_get_original_data.sh`, `02_clean_original_data.sh`, `03_get_new_data.sh`, and `04_clean_new_data.sh`. This downloads the original data sets and removes unnecessary comments from. We then process the data with several python scripts. Each python scripts takes a substantive amount of time to run, because we specifically calculate the embeddedness of each node in each graph studied. For this reason, we ran our scripts locally and uploaded the resulting outputs as CSV files in the data directory. We process these CSV files in our R analysis. Readers can examine the original data after frunning `make scripts`. Running `make clean` deletes all downloaded data from the `data` subdirectory.  
 
+Running `make all` should produce a rendered HTML file of our analysis, code, and results. Note that this process takes a very long time.
+
 Downloading new Wikipedia data and generating the features for the machine learning model requires the following package installations: 
 
 - Python NetworkX
