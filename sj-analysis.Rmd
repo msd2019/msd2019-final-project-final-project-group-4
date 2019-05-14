@@ -125,6 +125,7 @@ graph_epinions
 graph_slashdot
 graph_oldwiki
 ```
+Here, we have graphed the accuracy for each data set, testing on the complete data using 10-fold cross-validation as is done in the paper for different embedding levels. The results we get are quite similar to those found in the paper, with minor variations. This is probably due to the difference in cleaning the data. 
 
 ```{r cross prediction function}
 cross_predict <- function(model, temp_test) {
