@@ -1,6 +1,8 @@
 ---
 title: "Analysis"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -12,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Replicating Results in the Original Paper
 
-```{r embedding loop}
+```{r embedding loop, Warning = FALSE, Message = FALSE}
 embedding_loop <- function(temp_test, em_level) {
 
   temp_test <- temp_test %>% filter(embeddedness >= em_level)
@@ -44,7 +46,7 @@ embedding_loop <- function(temp_test, em_level) {
 
 ## Old Wikipedia Data Logistic Regression
 
-```{r old wikipedia logistic regression}
+```{r old wikipedia logistic regression, Warning = FALSE, Message = FALSE}
 oldwiki_edges <- read.csv("data/oldwiki_edgelist.csv", col.names = c("u", "v", "sign"))
 oldwiki_nodes <-read_csv("data/nodes_features_oldwiki.csv")
 oldwiki_embed <-read_csv("data/edges_features_old_wiki.csv")
@@ -64,7 +66,7 @@ pred_accuracy_oldwiki[3] <- embedding_loop(test, 25)
 
 ## Slashdot Data Logistic Regression and Predictive Accuracy
 
-```{r slashdot logistic regression}
+```{r slashdot logistic regression, Warning = FALSE, Message = FALSE}
 slashdot_edges <- read.csv("data/edgelist_slashdot.csv", col.names = c("u", "v", "sign"))
 slashdot_nodes <-read_csv("data/nodes_features_slashdot.csv")
 slashdot_embed <-read_csv("data/edges_features_slashdot.csv")
@@ -84,7 +86,7 @@ pred_accuracy_slashdot[3] <- embedding_loop(test_slashdot, 25)
 
 ## Epinions Data Logistic Regression and Predictive Accuracy
 
-```{r epinions logistic regression}
+```{r epinions logistic regression, Warning = FALSE, Message = FALSE}
 epinions_edges <- read.csv("data/edgelist_epinions.csv", col.names = c("u", "v", "sign"))
 epinions_nodes <-read_csv("data/nodes_features_epinions.csv")
 epinions_embed <-read_csv("data/edges_features_epinions.csv")
@@ -102,7 +104,7 @@ pred_accuracy_epinions[2] <- embedding_loop(test_epinions, 10)
 pred_accuracy_epinions[3] <- embedding_loop(test_epinions, 25)
 ```
 
-```{r predict accuracy bar graphs}
+```{r predict accuracy bar graphs, Warning = FALSE, Message = FALSE}
 pred_acc_chunk_ep <- cbind(c("0","10","25"), pred_accuracy_epinions, c("epinions", "epinions", "epinions"))
 pred_acc_chunk_sl <- cbind(c("0","10","25"), pred_accuracy_slashdot, c("slashdot", "slashdot", "slashdot"))
 pred_acc_chunk_ow <- cbind(c("0","10","25"), pred_accuracy_oldwiki, c("oldwiki", "oldwiki", "oldwiki"))
@@ -120,7 +122,7 @@ ggplot(data = reformatted_pred_acc, aes(website, predacc)) +
 
 Here, we have graphed the accuracy for each data set, testing on the complete data using 10-fold cross-validation as is done in the paper for different embedding levels. The results we get are quite similar to those found in the paper, with minor variations. This is probably due to the difference in cleaning the data. 
 
-```{r cross prediction function}
+```{r cross prediction function, Warning = FALSE, Message = FALSE}
 cross_predict <- function(model, temp_test) {
   
   temp_x <- temp_test[,-c(1,2,3)]
@@ -145,7 +147,7 @@ cross_predict <- function(model, temp_test) {
 
 ## Train Logistic Regression Models
 
-```{r train logistic regression models}
+```{r train logistic regression models, Warning = FALSE, Message = FALSE}
 temp_x1 <- test[,-c(1,2,3)]
 temp_x2 <- test_epinions[,-c(1,2,3)]
 temp_x3 <- test_slashdot[,-c(1,2,3)]
@@ -161,7 +163,7 @@ mylogit_slashdot <-cv.glmnet(as.matrix(temp_x3),temp_y3, family = "binomial")
 
 ## Cross Predict 
 
-```{r perform cross predictions}
+```{r perform cross predictions, Warning = FALSE, Message = FALSE}
 cross_predict(mylogit_wiki_old,test_epinions)
 cross_predict(mylogit_wiki_old,test_slashdot)
 
@@ -196,7 +198,7 @@ Wikipedia & 0.9249   & 0.8446   & 0.8549
 
 # Considering New Wikipedia Data
 
-```{r new wikipedia logistic regression}
+```{r new wikipedia logistic regression, Warning = FALSE, Message = FALSE}
 newwiki_edges <- read.csv("data/edgelist_newwiki.csv", col.names = c("u", "v", "sign"))
 newwiki_nodes <-read_csv("data/nodes_features_newwiki.csv")
 newwiki_embed <-read_csv("data/edges_features_new_wiki.csv")
@@ -215,7 +217,7 @@ pred_accuracy_newwiki[2] <- embedding_loop(test, 10)
 pred_accuracy_newwiki[3] <- embedding_loop(test, 25)
 ```
 
-```{r perform cross predictions for new Wikipedia data}
+```{r perform cross predictions for new Wikipedia data, Warning = FALSE, Message = FALSE}
 temp_x4 <- test_newwiki[,-c(1,2,3)]
 temp_y4 <- test_newwiki[,3]
 
@@ -246,7 +248,7 @@ New Wikipedia & 0.8921   & 0.8447   & 0.9378    & 0.9378
 
 We conduct a similar analysis as before on the Bitcoin OTC dataset to determine if the trained model on old wikipedia data can yield similar predictive accuracy as the other signed networks. 
 
-```{r bitcoin logistic regression}
+```{r bitcoin logistic regression, Warning = FALSE, Message = FALSE}
 bitcoin_edges <- read.csv("data/edgelist_bitcoin.csv", col.names = c("u", "v", "sign"))
 bitcoin_nodes <-read_csv("data/nodes_features_bitcoin.csv")
 bitcoin_embed <-read_csv("data/edges_features_bitcoin.csv")
@@ -265,7 +267,7 @@ pred_accuracy_bitcoin[2] <- embedding_loop(test, 10)
 pred_accuracy_bitcoin[3] <- embedding_loop(test, 25)
 ```
 
-```{r bitcoin predictive accuracy bar chart}
+```{r bitcoin predictive accuracy bar chart, Warning = FALSE, Message = FALSE}
 pred_acc_chunk_nw <- cbind(c("0","10","25"), pred_accuracy_newwiki, c("newwiki", "newwiki", "newwiki"))
 pred_acc_chunk_bc <- cbind(c("0","10","25"), pred_accuracy_bitcoin, c("bitcoin", "bitcoin", "bitcoin"))
 
@@ -282,7 +284,7 @@ ggplot(data = reformatted_pred_acc, aes(website, predacc)) +
   coord_cartesian(ylim=c(.7, 1))
 ```
 
-```{r bitcoin cross predictions}
+```{r bitcoin cross predictions, Warning = FALSE, Message = FALSE}
 temp_x5 <- test_bitcoin[,-c(1,2,3)]
 temp_y5 <- test_bitcoin[,3]
 
@@ -314,7 +316,7 @@ Bitcoin       & 0.7262   & 0.7604   & 0.4826    & 0.4826        & 0.9378
 
 Interestingly, the Bitcoin datasets shows very little similarity to the Wikipedia, Slashdot, and Epinions datasets. In an initial analysis, we found that the average positivity of the graph does not seem to be a strong predictor on graphs' intra-predictive similarities. We see that the wikipedia datasets have average positivities approximately equal to 47% whereas slashdot and epinion both have average positivities approximately equalt to 77% while the bitcoin dataset is approximately 85%. 
 
-```{r average positivity}
+```{r average positivity, Warning = FALSE, Message = FALSE}
 mean(test$sign)
 mean(test_epinions$sign)
 mean(test_slashdot$sign)
@@ -324,7 +326,7 @@ mean(test_bitcoin$sign)
 
 Earlier in our analysis we suggested that the triad features carried larger importance for the Slashdot dataset than the Epinions and Wikipedia datasets. We considered the embeddedness of each dataset and found surprising results. The embeddedness of slashdot and the bitcoin dataset were most similar at approximately 4.0 whereas the embeddedness of epinions and the wikipedia datasets were 24 and 14 respectively. The smaller average embeddedness suggests an inherently different network structure which yieled to our poor predictive accuracy. 
 
-```{r embeddedness histograms}
+```{r embeddedness histograms, Warning = FALSE, Message = FALSE}
 mean(test$embeddedness)
 mean(test_epinions$embeddednes)
 mean(test_slashdot$embeddednes)

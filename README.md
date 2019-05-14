@@ -33,4 +33,4 @@ Downloading new Wikipedia data and generating the features for the machine learn
 - Python Requests
 - Python lxml
 
-Each of these packages can be installed via pip. We utilized Python 3 for new data collection and computation of triad features for the machine learning model. 
+Each of these packages can be installed via pip. We utilized Python 3 for new data collection and computation of triad features for the machine learning model. After consultation with Jake Hofman in class, we scrapped our efforts to calculate all 23 features analyzed in the original paper. Instead, we focused exclusively on the 7 node specific features for a simpler segment of replication and analysis.  
