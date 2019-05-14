@@ -254,16 +254,17 @@ New Wikipedia & 0.8921   & 0.8447   & 0.9378    & 0.9378
 We conduct a similar analysis as before on the Bitcoin OTC dataset to determine if the trained model on old wikipedia data can yield similar predictive accuracy as the other signed networks. 
 
 ```{r bitcoin logistic regression}
-bitcoin_edges <- read.csv("data/bitcoin_edgelist.csv", col.names = c("u", "v", "sign"))
+bitcoin_edges <- read.csv("data/edgelist_bitcoin.csv", col.names = c("u", "v", "sign"))
 bitcoin_nodes <-read_csv("data/nodes_features_bitcoin.csv")
 bitcoin_embed <-read_csv("data/edges_features_bitcoin.csv")
 
 bitcoin_sign_embed <- inner_join(bitcoin_edges, bitcoin_embed, by = c('u'='u', 'v' = 'v'))
 bitcoin_sign_embed <- inner_join(bitcoin_sign_embed, bitcoin_nodes, by = c('u' = 'node_id'))
 bitcoin_sign_embed <- inner_join(bitcoin_sign_embed, bitcoin_nodes, by = c('v' = 'node_id'))
+
 test_bitcoin <- select(bitcoin_sign_embed, u, v, sign, embeddedness, pos_in.x, neg_in.y, total_out.x, total_in.y, pos_out.x, neg_out.y)
 
-test_bitcoin <- test_bitcoin %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
+#test_bitcoin <- test_bitcoin %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
 
 pred_accuracy_bitcoin <- vector('numeric', 3)
 pred_accuracy_bitcoin[1] <- embedding_loop(test, 0)
@@ -278,13 +279,15 @@ graph_bitcoin <- ggplot(data = total_pred_acc, aes(x = embeddedness_level,
                                                    y = pred_accuracy_bitcoin)) + 
   geom_bar(stat = "identity") + 
   expand_limits(y=c(0.5, 1))
+
+graph_bitcoin
 ```
 
 ```{r bitcoin cross predictions}
 temp_x5 <- test_bitcoin[,-c(1,2,3)]
 temp_y5 <- test_bitcoin[,3]
 
-mylogit_bitcoin <-cv.glmnet(as.matrix(temp_x5),temp_y5, family = "binomial")
+mylogit_bitcoin <-cv.glmnet(as.matrix(temp_x5), temp_y5, family = "binomial")
 
 cross_predict(mylogit_wiki_old,test_bitcoin)
 cross_predict(mylogit_slashdot, test_bitcoin)
@@ -296,3 +299,18 @@ cross_predict(mylogit_bitcoin, test_slashdot)
 cross_predict(mylogit_bitcoin, test_epinions)
 cross_predict(mylogit_bitcoin, test_newwiki)
 ```
+
+We summarize our final table of results below. 
+
+\begin{table}[]
+\begin{tabular}{llllll}
+              & Epinions & Slashdot & Wikipedia & New Wikipedia & Bitcoin \\
+Epinions      & 0.8991   & 0.8125   & 0.7956    & 0.8270        & 0.7143  \\
+Slashdot      & 0.8916   & 0.8424   & 0.7870    & 0.9105        & 0.5988  \\
+Wikipedia     & 0.9249   & 0.8446   & 0.8549    & 0.9046        & 0.5592  \\
+New Wikipedia & 0.8921   & 0.8447   & 0.9378    & 0.9378        & 0.3738  \\
+Bitcoin       & 0.7262   & 0.7604   & 0.4826    & 0.4826        & 0.9378 
+\end{tabular}
+\end{table}
+
+Interestingly, the Bitcoin datasets shows very little similarity to the Wikipedia, Slashdot, and Epinions datasets. 
