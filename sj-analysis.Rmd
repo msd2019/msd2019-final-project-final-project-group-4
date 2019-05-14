@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Replicating Results in the Original Paper
 
-```{r embedding-loop}
+```{r embedding loop}
 embedding_loop <- function(temp_test, em_level) {
 
   temp_test <- temp_test %>% filter(embeddedness >= em_level)
@@ -103,26 +103,19 @@ pred_accuracy_epinions[3] <- embedding_loop(test_epinions, 25)
 ```
 
 ```{r predict accuracy bar graphs}
-total_pred_acc <- cbind(c("0","10","25"), pred_accuracy_epinions, pred_accuracy_slashdot, pred_accuracy_oldwiki)
+pred_acc_chunk_ep <- cbind(c("0","10","25"), pred_accuracy_epinions, c("epinions", "epinions", "epinions"))
+pred_acc_chunk_sl <- cbind(c("0","10","25"), pred_accuracy_slashdot, c("slashdot", "slashdot", "slashdot"))
+pred_acc_chunk_ow <- cbind(c("0","10","25"), pred_accuracy_oldwiki, c("oldwiki", "oldwiki", "oldwiki"))
+reformatted_pred_acc <- rbind(pred_acc_chunk_ep, pred_acc_chunk_sl, pred_acc_chunk_ow)
+reformatted_pred_acc <- as_tibble(reformatted_pred_acc)
 
-total_pred_acc <- as_tibble(total_pred_acc)
-total_pred_acc <- rename(total_pred_acc, embeddedness_level = V1)
+colnames(reformatted_pred_acc) <- c("embed", "predacc", "website")
+reformatted_pred_acc <- reformatted_pred_acc %>%
+  mutate(predacc = as.numeric(predacc))
 
-graph_epinions <- ggplot(data = total_pred_acc, aes(x = embeddedness_level, y = pred_accuracy_epinions)) + 
-  geom_bar(stat = "identity") + 
-  expand_limits(y=c(0.5, 1))
-
-graph_slashdot <- ggplot(data = total_pred_acc, aes(x = embeddedness_level, y = pred_accuracy_slashdot)) + 
-  geom_bar(stat = "identity") + 
-  expand_limits(y=c(0.5, 1))
-
-graph_oldwiki <- ggplot(data = total_pred_acc, aes(x = embeddedness_level, y = pred_accuracy_oldwiki)) + 
-  geom_bar(stat = "identity") + 
-  expand_limits(y=c(0.5, 1))
-
-graph_epinions
-graph_slashdot
-graph_oldwiki
+ggplot(data = reformatted_pred_acc, aes(website, predacc)) +
+  geom_bar(aes(fill = embed), position = "dodge", stat = "identity") + 
+  coord_cartesian(ylim=c(.5, 1))
 ```
 
 Here, we have graphed the accuracy for each data set, testing on the complete data using 10-fold cross-validation as is done in the paper for different embedding levels. The results we get are quite similar to those found in the paper, with minor variations. This is probably due to the difference in cleaning the data. 
@@ -203,7 +196,7 @@ Wikipedia & 0.9249   & 0.8446   & 0.8549
 
 # Considering New Wikipedia Data
 
-```{r old wikipedia logistic regression}
+```{r new wikipedia logistic regression}
 newwiki_edges <- read.csv("data/edgelist_newwiki.csv", col.names = c("u", "v", "sign"))
 newwiki_nodes <-read_csv("data/nodes_features_newwiki.csv")
 newwiki_embed <-read_csv("data/edges_features_new_wiki.csv")
@@ -216,13 +209,13 @@ test_newwiki <- select(newwiki_sign_embed, u, v, sign, embeddedness, pos_in.x, n
 
 test_newwiki <- test_newwiki %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
 
-pred_accuracy_oldwiki <- vector('numeric', 3)
-pred_accuracy_oldwiki[1] <- embedding_loop(test, 0)
-pred_accuracy_oldwiki[2] <- embedding_loop(test, 10)
-pred_accuracy_oldwiki[3] <- embedding_loop(test, 25)
+pred_accuracy_newwiki <- vector('numeric', 3)
+pred_accuracy_newwiki[1] <- embedding_loop(test, 0)
+pred_accuracy_newwiki[2] <- embedding_loop(test, 10)
+pred_accuracy_newwiki[3] <- embedding_loop(test, 25)
 ```
 
-```{r perform cross predictions}
+```{r perform cross predictions for new Wikipedia data}
 temp_x4 <- test_newwiki[,-c(1,2,3)]
 temp_y4 <- test_newwiki[,3]
 
@@ -273,14 +266,20 @@ pred_accuracy_bitcoin[3] <- embedding_loop(test, 25)
 ```
 
 ```{r bitcoin predictive accuracy bar chart}
-total_pred_acc <- cbind(total_pred_acc, pred_accuracy_bitcoin)
+pred_acc_chunk_nw <- cbind(c("0","10","25"), pred_accuracy_newwiki, c("newwiki", "newwiki", "newwiki"))
+pred_acc_chunk_bc <- cbind(c("0","10","25"), pred_accuracy_bitcoin, c("bitcoin", "bitcoin", "bitcoin"))
 
-graph_bitcoin <- ggplot(data = total_pred_acc, aes(x = embeddedness_level, 
-                                                   y = pred_accuracy_bitcoin)) + 
-  geom_bar(stat = "identity") + 
-  expand_limits(y=c(0.5, 1))
+reformatted_pred_acc <- rbind(pred_acc_chunk_ep, pred_acc_chunk_sl, pred_acc_chunk_ow, pred_acc_chunk_nw, pred_acc_chunk_bc)
+reformatted_pred_acc <- as_tibble(reformatted_pred_acc)
 
-graph_bitcoin
+colnames(reformatted_pred_acc) <- c("embed", "predacc", "website")
+
+reformatted_pred_acc <- reformatted_pred_acc %>%
+  mutate(predacc = as.numeric(predacc))
+
+ggplot(data = reformatted_pred_acc, aes(website, predacc)) +
+  geom_bar(aes(fill = embed), position = "dodge", stat = "identity") + 
+  coord_cartesian(ylim=c(.7, 1))
 ```
 
 ```{r bitcoin cross predictions}
