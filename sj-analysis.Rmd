@@ -313,4 +313,22 @@ Bitcoin       & 0.7262   & 0.7604   & 0.4826    & 0.4826        & 0.9378
 \end{tabular}
 \end{table}
 
-Interestingly, the Bitcoin datasets shows very little similarity to the Wikipedia, Slashdot, and Epinions datasets. 
+Interestingly, the Bitcoin datasets shows very little similarity to the Wikipedia, Slashdot, and Epinions datasets. In an initial analysis, we found that the average positivity of the graph does not seem to be a strong predictor on graphs' intra-predictive similarities. We see that the wikipedia datasets have average positivities approximately equal to 47% whereas slashdot and epinion both have average positivities approximately equalt to 77% while the bitcoin dataset is approximately 85%. 
+
+```{r average positivity}
+mean(test$sign)
+mean(test_epinions$sign)
+mean(test_slashdot$sign)
+mean(test_newwiki$sign)
+mean(test_bitcoin$sign)
+```
+
+Earlier in our analysis we suggested that the triad features carried larger importance for the Slashdot dataset than the Epinions and Wikipedia datasets. We considered the embeddedness of each dataset and found surprising results. The embeddedness of slashdot and the bitcoin dataset were most similar at approximately 4.0 whereas the embeddedness of epinions and the wikipedia datasets were 24 and 14 respectively. The smaller average embeddedness suggests an inherently different network structure which yieled to our poor predictive accuracy. 
+
+```{r embeddedness histograms}
+mean(test$embeddedness)
+mean(test_epinions$embeddednes)
+mean(test_slashdot$embeddednes)
+mean(test_newwiki$embeddednes)
+mean(test_bitcoin$embeddednes)
+```
