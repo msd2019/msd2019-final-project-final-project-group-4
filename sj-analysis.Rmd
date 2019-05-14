@@ -25,8 +25,7 @@ embedding_loop <- function(temp_test, em_level) {
   temp_x <- temp_test[,-c(1,2,3)]
   temp_y <- temp_test[,3]
   cvfitted <- cv.glmnet(as.matrix(temp_x),temp_y, family="binomial")
-  
-  #plot(cvfitted)
+
   print(cvfitted$lambda.min)
   
   log_odds_predictions <-predict(cvfitted,as.matrix(temp_x), s="lambda.min")
@@ -272,8 +271,6 @@ bitcoin_sign_embed <- inner_join(bitcoin_sign_embed, bitcoin_nodes, by = c('v' =
 
 test_bitcoin <- select(bitcoin_sign_embed, u, v, sign, embeddedness, pos_in.x, neg_in.y, total_out.x, total_in.y, pos_out.x, neg_out.y)
 
-#test_bitcoin <- test_bitcoin %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
-
 pred_accuracy_bitcoin <- vector('numeric', 3)
 pred_accuracy_bitcoin[1] <- embedding_loop(test, 0)
 pred_accuracy_bitcoin[2] <- embedding_loop(test, 10)
@@ -344,7 +341,7 @@ mean(test_bitcoin$sign)
 
 Earlier in our analysis we suggested that the triad features carried larger importance for the Slashdot dataset than the Epinions and Wikipedia datasets. We considered the embeddedness of each dataset and found surprising results. The embeddedness of slashdot and the bitcoin dataset were most similar at approximately 4.0 whereas the embeddedness of epinions and the wikipedia datasets were 24 and 14 respectively. The smaller average embeddedness suggests an inherently different network structure which yieled to our poor predictive accuracy. 
 
-```{r embeddedness histograms, Warning = FALSE, Message = FALSE}
+```{r average embeddedness, Warning = FALSE, Message = FALSE}
 mean(test$embeddedness)
 mean(test_epinions$embeddednes)
 mean(test_slashdot$embeddednes)
