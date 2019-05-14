@@ -87,8 +87,7 @@ All of these features are computed for each data set using the scripts found in 
 \ \ \ \ \ \ \ We ultimately reproduced figures similar to the **Figure 1** and **Table 6** found in Leskovec et. al's (2010). It is important to note that these figures are *similar*, as we have reproduced 7 of the 23 data-derived features used in the paper, and none of the heuristically-derived features. However, we use the exact same "machine-learning" framework, essentially a logistic regression classifier, to combine evidence from our node-level features into an edge sign prediction. Our classifier learns a model of the form $P(+|x) = \frac{1}{1 + e^{-(b_0+\sum_i^nb_ix_i)}}$ where $x$ is a vector of features and $b_0$$...$$b_n$ are coefficients we estimate based on the training data. All of our results are reports of the average accuracy and estimated logistics regression coefficients over 10-fold cross validation.
 
 ```{r embedding loop, Warning = FALSE, Message = FALSE}
-# Replicating Results in the Original Paper
-
+#helper function for fitting logit models
 embedding_loop <- function(temp_test, em_level) {
 
   temp_test <- temp_test %>% filter(embeddedness >= em_level)
@@ -119,8 +118,7 @@ embedding_loop <- function(temp_test, em_level) {
 
 
 ```{r old wikipedia logistic regression, Warning = FALSE, Message = FALSE}
-## Old Wikipedia Data Logistic Regression
-
+# run logit for old wikipedia data
 oldwiki_edges <- read.csv("data/oldwiki_edgelist.csv", col.names = c("u", "v", "sign"))
 oldwiki_nodes <-read_csv("data/nodes_features_oldwiki.csv")
 oldwiki_embed <-read_csv("data/edges_features_old_wiki.csv")
@@ -132,6 +130,7 @@ test <- select(oldwiki_sign_embed, u, v, sign, embeddedness, pos_in.x, neg_in.y,
 
 test <- test %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
 
+#compute predictive accruacy for embeddedness at 0, 10, 25
 pred_accuracy_oldwiki <- vector('numeric', 3)
 pred_accuracy_oldwiki[1] <- embedding_loop(test, 0)
 pred_accuracy_oldwiki[2] <- embedding_loop(test, 10)
@@ -141,8 +140,7 @@ pred_accuracy_oldwiki[3] <- embedding_loop(test, 25)
 
 
 ```{r slashdot logistic regression, Warning = FALSE, Message = FALSE}
-## Slashdot Data Logistic Regression and Predictive Accuracy
-
+# run logit for slashdot data
 slashdot_edges <- read.csv("data/edgelist_slashdot.csv", col.names = c("u", "v", "sign"))
 slashdot_nodes <-read_csv("data/nodes_features_slashdot.csv")
 slashdot_embed <-read_csv("data/edges_features_slashdot.csv")
@@ -154,6 +152,7 @@ test_slashdot <- select(slashdot_sign_embed, u, v, sign, embeddedness, pos_in.x,
 
 test_slashdot <- test_slashdot %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
 
+#compute predictive accruacy for embeddedness at 0, 10, 25
 pred_accuracy_slashdot <- vector('numeric', 3)
 pred_accuracy_slashdot[1] <- embedding_loop(test_slashdot, 0)
 pred_accuracy_slashdot[2] <- embedding_loop(test_slashdot, 10)
@@ -163,8 +162,7 @@ pred_accuracy_slashdot[3] <- embedding_loop(test_slashdot, 25)
 
 
 ```{r epinions logistic regression, Warning = FALSE, Message = FALSE}
-## Epinions Data Logistic Regression and Predictive Accuracy
-
+# run logit for epinions data
 epinions_edges <- read.csv("data/edgelist_epinions.csv", col.names = c("u", "v", "sign"))
 epinions_nodes <-read_csv("data/nodes_features_epinions.csv")
 epinions_embed <-read_csv("data/edges_features_epinions.csv")
@@ -176,6 +174,7 @@ test_epinions <- select(epinions_sign_embed, u, v, sign, embeddedness, pos_in.x,
 
 test_epinions <- test_epinions %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
 
+#compute predictive accruacy for embeddedness at 0, 10, 25
 pred_accuracy_epinions <- vector('numeric', 3)
 pred_accuracy_epinions[1] <- embedding_loop(test_epinions, 0)
 pred_accuracy_epinions[2] <- embedding_loop(test_epinions, 10)
@@ -185,7 +184,8 @@ pred_accuracy_epinions[3] <- embedding_loop(test_epinions, 25)
 
 \ \ \ \ \ \ \ **Figure 1**  shows the classification accuracy for the Epinions, Slashdot, and provided Wikipedia data sets across embeddedness thresholds of 0, 10, and 25. There are a few notable differences between our figure and the Figure 1 in Leskovec et. al (2010). First, as previously noted, we only predict using the node-level feature set. In comparison to the classification accuracy of predictions using only degree features by Leskovec et. al, our predictions are consistently more accurate. For instance, the lowest error rate obtained using degree-features in the paper is 11.45%, whereas our lowest rate is 6%. While this accuracy discrepancy between Leskovec et. al and our works holds across all data sets, it should be noted our observed that patterns in the relative accuracy across data sets and embedded thresholds are equivalent to those seen in the paper. These trends show that, for all data sets except Wikipedia, the explanatory power of our feature set increases as embeddedness does. This is anticipated as one of our node-level features, embeddedness, is obviously dependent on embeddedness and becomes more effective as a greater amount of neighboring node information becomes available. It is unclear why our classification accuracy is consistently higher than that reported by Leskovec et. al; considering this constancy, there might be a systematic difference between how our scripts determine a correct prediction. In addition, as noted in our sections on Data Collection, even the data pulled directly from SNAP is slightly different that the data sets described by Leskovec et. al. It is possible this discrepancy also contributes to the observed differences in accuracy.
 
-```{r predict accuracy bar graphs, Warning = FALSE, Message = FALSE, fig.align="center", echo = FALSE}
+```{r predict accuracy bar graphs, Warning = FALSE, message = FALSE}
+# produce figure for comparision across domains
 pred_acc_chunk_ep <- cbind(c("0","10","25"), pred_accuracy_epinions, c("epinions", "epinions", "epinions"))
 pred_acc_chunk_sl <- cbind(c("0","10","25"), pred_accuracy_slashdot, c("slashdot", "slashdot", "slashdot"))
 pred_acc_chunk_ow <- cbind(c("0","10","25"), pred_accuracy_oldwiki, c("oldwiki", "oldwiki", "oldwiki"))
@@ -195,7 +195,9 @@ reformatted_pred_acc <- as_tibble(reformatted_pred_acc)
 colnames(reformatted_pred_acc) <- c("embed", "predacc", "website")
 reformatted_pred_acc <- reformatted_pred_acc %>%
   mutate(predacc = as.numeric(predacc))
+```
 
+```{r fig.align="center", include = TRUE, echo = FALSE, fig.width=10}
 ggplot(data = reformatted_pred_acc, aes(website, predacc)) +
   geom_bar(aes(fill = embed), position = "dodge", stat = "identity") + 
   coord_cartesian(ylim=c(.5, 1)) +
@@ -208,7 +210,7 @@ ggplot(data = reformatted_pred_acc, aes(website, predacc)) +
 
 
 ```{r cross prediction function, Warning = FALSE, Message = FALSE}
-#Function for cross-prediction
+#helper function for cross-prediction
 cross_predict <- function(model, temp_test) {
   
   temp_x <- temp_test[,-c(1,2,3)]
@@ -234,8 +236,7 @@ cross_predict <- function(model, temp_test) {
 
 
 ```{r train logistic regression models, Warning = FALSE, Message = FALSE}
-## Train Logistic Regression Models
-
+#train logits for cross-domain prediction
 temp_x1 <- test[,-c(1,2,3)]
 temp_x2 <- test_epinions[,-c(1,2,3)]
 temp_x3 <- test_slashdot[,-c(1,2,3)]
@@ -251,8 +252,7 @@ mylogit_slashdot <-cv.glmnet(as.matrix(temp_x3),temp_y3, family = "binomial")
 
 
 ```{r perform cross predictions, Warning = FALSE, Message = FALSE}
-## Cross Predict 
-
+## cross=domain prediction
 cross_predict(mylogit_wiki_old,test_epinions)
 cross_predict(mylogit_wiki_old,test_slashdot)
 
@@ -298,7 +298,7 @@ Wikipedia & 0.9249   & 0.8446   & 0.8549    \\ \bottomrule
 \ \ \ \ \ \ \ In order to extend the results of Leskovec et. al (2010), we include two additional data sets in our analysis: an updated Wikipedia adminship network and bitcoin certification network which are detailed in the Data Collection section. A reproduction of the classification accuracy bar charts with this data is included in **Figure 2**. The same patterns observed in our initial three data sets hold here. Accuracy is generally quite high, and accuracy increases as embeddedness does. We also observe that the accuracy for Slashdot is consistently lower than for other data sets; this is similar to our results in cross-training table **Table 2**. 
 
 ```{r new wikipedia logistic regression, Warning = FALSE, Message = FALSE}
-# Considering New Wikipedia Data
+# compute accuracy across embeddedness for new wikipedia data
 
 newwiki_edges <- read.csv("data/edgelist_newwiki.csv", col.names = c("u", "v", "sign"))
 newwiki_nodes <-read_csv("data/nodes_features_newwiki.csv")
@@ -319,7 +319,7 @@ pred_accuracy_newwiki[3] <- embedding_loop(test, 25)
 ```
 
 ```{r bitcoin logistic regression, Warning = FALSE, Message = FALSE}
-# Extending our Results with the Bitcoin OTC Trust Network
+# compute accuracy across embeddedness for bitcoin data
 
 bitcoin_edges <- read.csv("data/edgelist_bitcoin.csv", col.names = c("u", "v", "sign"))
 bitcoin_nodes <-read_csv("data/nodes_features_bitcoin.csv")
@@ -337,7 +337,8 @@ pred_accuracy_bitcoin[2] <- embedding_loop(test, 10)
 pred_accuracy_bitcoin[3] <- embedding_loop(test, 25)
 ```
 
-```{r bitcoin predictive accuracy bar chart, Warning = FALSE, Message = FALSE, fig.align="center", echo = FALSE}
+```{r bitcoin predictive accuracy bar chart, arning = FALSE, message = FALSE, fig.align="center", include = TRUE, echo = FALSE, fig.width=10}
+# produce visuali
 pred_acc_chunk_nw <- cbind(c("0","10","25"), pred_accuracy_newwiki, c("newwiki", "newwiki", "newwiki"))
 pred_acc_chunk_bc <- cbind(c("0","10","25"), pred_accuracy_bitcoin, c("bitcoin", "bitcoin", "bitcoin"))
 
@@ -417,6 +418,6 @@ Bitcoin       & 0.7262   & 0.7604   & 0.4826    & 0.4826        & 0.9378  \\ \bo
 ## SYSTEM SETTINGS
 The following is a list of all packages used to generate these results.
 
-```{r}
+```{r, , include = TRUE, echo = FALSE}
 sessionInfo()
 ```
