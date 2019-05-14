@@ -249,3 +249,32 @@ New Wikipedia & 0.8921   & 0.8447   & 0.9378    & 0.9378
 \end{table}
 
 # Extending our Results with the Bitcoin OTC Trust Network
+
+We conduct a similar analysis as before on the Bitcoin OTC dataset to determine if the trained model on old wikipedia data can yield similar predictive accuracy as the other signed networks. 
+
+```{r bitcoin logistic regression}
+bitcoin_edges <- read.csv("data/bitcoin_edgelist.csv", col.names = c("u", "v", "sign"))
+bitcoin_nodes <-read_csv("data/nodes_features_bitcoin.csv")
+bitcoin_embed <-read_csv("data/edges_features_bitcoin.csv")
+
+bitcoin_sign_embed <- inner_join(bitcoin_edges, bitcoin_embed, by = c('u'='u', 'v' = 'v'))
+bitcoin_sign_embed <- inner_join(bitcoin_sign_embed, bitcoin_nodes, by = c('u' = 'node_id'))
+bitcoin_sign_embed <- inner_join(bitcoin_sign_embed, bitcoin_nodes, by = c('v' = 'node_id'))
+test <- select(bitcoin_sign_embed, u, v, sign, embeddedness, pos_in.x, neg_in.y, total_out.x, total_in.y, pos_out.x, neg_out.y)
+
+test <- test %>% filter(sign != 0) %>% mutate(sign =  ifelse(sign == -1, 0, 1))
+
+pred_accuracy_bitcoin <- vector('numeric', 3)
+pred_accuracy_bitcoin[1] <- embedding_loop(test, 0)
+pred_accuracy_bitcoin[2] <- embedding_loop(test, 10)
+pred_accuracy_bitcoin[3] <- embedding_loop(test, 25)
+```
+
+```{r bitcoin predictive accuracy bar chart}
+total_pred_acc <- cbind(total_pred_acc, pred_accuracy_bitcoin)
+
+graph_bitcoin <- ggplot(data = total_pred_acc, aes(x = embeddedness_level, 
+                                                   y = pred_accuracy_bitcoin)) + 
+  geom_bar(stat = "identity") + 
+  expand_limits(y=c(0.5, 1))
+```
