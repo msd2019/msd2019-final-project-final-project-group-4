@@ -104,7 +104,7 @@ pred_accuracy_epinions[2] <- embedding_loop(test_epinions, 10)
 pred_accuracy_epinions[3] <- embedding_loop(test_epinions, 25)
 ```
 
-```{r predict accuracy bar graphs, Warning = FALSE, Message = FALSE}
+```{r predict accuracy bar graphs, Warning = FALSE, Message = FALSE, fig.align="center"}
 pred_acc_chunk_ep <- cbind(c("0","10","25"), pred_accuracy_epinions, c("epinions", "epinions", "epinions"))
 pred_acc_chunk_sl <- cbind(c("0","10","25"), pred_accuracy_slashdot, c("slashdot", "slashdot", "slashdot"))
 pred_acc_chunk_ow <- cbind(c("0","10","25"), pred_accuracy_oldwiki, c("oldwiki", "oldwiki", "oldwiki"))
@@ -176,24 +176,34 @@ cross_predict(mylogit_epinions,test_slashdot)
 
 Leskovec, Huttenlocher, and Kleinberg reported the following predictive accuracy results. The rows represent the dataset trained on and the columns represent the dataset tested on. The machine learning formulation utilized for these results relied on all 23 features, including the triads. We chose to focus on the 7 node specific features for our computational results. 
 
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
 \begin{table}[]
-\begin{tabular}{llll}
-          & Epinions & Slashdot & Wikipedia \\
+\begin{tabular}{@{}llll@{}}
+\toprule
+          & Epinions & Slashdot & Wikipedia \\ \midrule
 Epinions  & 0.9342   & 0.9289   & 0.7722    \\
 Slashdot  & 0.9249   & 0.9351   & 0.7717    \\
-Wikipedia & 0.9272   & 0.9260   & 0.8021   
+Wikipedia & 0.9272   & 0.9260   & 0.8021    \\ \bottomrule
 \end{tabular}
+\caption{Reported predictive accuracies when training on the "row" dataset and evaluating the prediction on the "column" dataset in the original paper. }
+\label{tab:my-table}
 \end{table}
 
 Our results are presented below with a focus on the 7 node specific features. It's important to note that all models tests on the Epinions and Wikipedia datasets yield similar results to Leskovec, Huttenlocher, and Kleinberg's original paper. However, we see larger disparities between the original results and our results with models tested on Slashdot. This suggests that the triad features carry larger importance for the Slashdot dataset than the Epinions and Wikipedia datasets. 
 
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
 \begin{table}[]
-\begin{tabular}{llll}
-          & Epinions & Slashdot & Wikipedia \\
+\begin{tabular}{@{}llll@{}}
+\toprule
+          & Epinions & Slashdot & Wikipedia \\ \midrule
 Epinions  & 0.8991   & 0.8125   & 0.7956    \\
 Slashdot  & 0.8916   & 0.8424   & 0.7870    \\
-Wikipedia & 0.9249   & 0.8446   & 0.8549   
+Wikipedia & 0.9249   & 0.8446   & 0.8549    \\ \bottomrule
 \end{tabular}
+\caption{Predictive accuracy when training on the "row" dataset and evaluating the prediction on the "column" dataset with our replicated results.}
+\label{tab:my-table}
 \end{table}
 
 # Considering New Wikipedia Data
@@ -236,12 +246,15 @@ We expand our table with the new results. Importantly, our logistic regerssion m
 
 \begin{table}[]
 \begin{tabular}{lllll}
-              & Epinions & Slashdot & Wikipedia & New Wikipedia \\
+\hline
+              & Epinions & Slashdot & Wikipedia & New Wikipedia \\ \hline
 Epinions      & 0.8991   & 0.8125   & 0.7956    & 0.8270        \\
 Slashdot      & 0.8916   & 0.8424   & 0.7870    & 0.9105        \\
 Wikipedia     & 0.9249   & 0.8446   & 0.8549    & 0.9046        \\
 New Wikipedia & 0.8921   & 0.8447   & 0.9378    & 0.9378       
 \end{tabular}
+\caption{Predictive accuracy when training on the "row" dataset and evaluating the prediction on the "column" dataset with added New Wikipedia dataset.}
+\label{tab:my-table}
 \end{table}
 
 # Extending our Results with the Bitcoin OTC Trust Network
@@ -267,7 +280,7 @@ pred_accuracy_bitcoin[2] <- embedding_loop(test, 10)
 pred_accuracy_bitcoin[3] <- embedding_loop(test, 25)
 ```
 
-```{r bitcoin predictive accuracy bar chart, Warning = FALSE, Message = FALSE}
+```{r bitcoin predictive accuracy bar chart, Warning = FALSE, Message = FALSE, fig.align="center"}
 pred_acc_chunk_nw <- cbind(c("0","10","25"), pred_accuracy_newwiki, c("newwiki", "newwiki", "newwiki"))
 pred_acc_chunk_bc <- cbind(c("0","10","25"), pred_accuracy_bitcoin, c("bitcoin", "bitcoin", "bitcoin"))
 
@@ -303,15 +316,20 @@ cross_predict(mylogit_bitcoin, test_newwiki)
 
 We summarize our final table of results below. 
 
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
 \begin{table}[]
-\begin{tabular}{llllll}
-              & Epinions & Slashdot & Wikipedia & New Wikipedia & Bitcoin \\
+\begin{tabular}{@{}llllll@{}}
+\toprule
+              & Epinions & Slashdot & Wikipedia & New Wikipedia & Bitcoin \\ \midrule
 Epinions      & 0.8991   & 0.8125   & 0.7956    & 0.8270        & 0.7143  \\
 Slashdot      & 0.8916   & 0.8424   & 0.7870    & 0.9105        & 0.5988  \\
 Wikipedia     & 0.9249   & 0.8446   & 0.8549    & 0.9046        & 0.5592  \\
 New Wikipedia & 0.8921   & 0.8447   & 0.9378    & 0.9378        & 0.3738  \\
-Bitcoin       & 0.7262   & 0.7604   & 0.4826    & 0.4826        & 0.9378 
+Bitcoin       & 0.7262   & 0.7604   & 0.4826    & 0.4826        & 0.9378  \\ \bottomrule
 \end{tabular}
+\caption{Predictive accuracy when training on the "row" dataset and evaluating the prediction on the "column" dataset with added Bitcoin dataset.}
+\label{tab:my-table}
 \end{table}
 
 Interestingly, the Bitcoin datasets shows very little similarity to the Wikipedia, Slashdot, and Epinions datasets. In an initial analysis, we found that the average positivity of the graph does not seem to be a strong predictor on graphs' intra-predictive similarities. We see that the wikipedia datasets have average positivities approximately equal to 47% whereas slashdot and epinion both have average positivities approximately equalt to 77% while the bitcoin dataset is approximately 85%. 
